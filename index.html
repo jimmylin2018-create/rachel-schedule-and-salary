@@ -1,177 +1,850 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026 年 5 月與 6 月工作排班表系統 - Shift Roster Builder</title>
-  
-  <!-- FontAwesome Icon Set -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- CSS Link -->
-  <link rel="stylesheet" href="roster.css">
-</head>
-<body>
-
-  <!-- Background Frosted Glowing Circles for Glassmorphism Effect -->
-  <div class="bg-bubble bg-bubble-1"></div>
-  <div class="bg-bubble bg-bubble-2"></div>
-
-  <div class="app-container">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026年個人工作排班表</title>
+    <!-- Tailwind CSS for modern responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js for interactive state management -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- FontAwesome for beautiful dashboard icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Header Section -->
-    <header class="roster-header glass-panel">
-      <div class="logo-section">
-        <div class="logo-badge"><i class="fas fa-calendar-alt"></i></div>
-        <div class="logo-details">
-          <h1>2026年 5月/6月工作排班表</h1>
-          <p>智能排班系統 &middot; 直覺塗鴉工具 &middot; 勞基法工時統計</p>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-card {
+                box-shadow: none !important;
+                border: 1px solid #e2e8f0 !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col" x-data="schedulerApp()">
+
+    <!-- Header Area -->
+    <header class="bg-indigo-700 text-white shadow-lg no-print">
+        <div class="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-indigo-600 rounded-lg shadow-inner">
+                    <i class="fa-solid fa-calendar-days text-2xl text-yellow-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">2026年 個人工作排班表</h1>
+                    <p class="text-indigo-200 text-xs sm:text-sm">智慧型排班規劃 · 工時統計 · 薪資自動計算</p>
+                </div>
+            </div>
+            
+            <!-- Quick Settings -->
+            <div class="flex flex-wrap items-center gap-3 bg-indigo-800 p-2 rounded-xl border border-indigo-600">
+                <div class="flex items-center space-x-2 px-2">
+                    <span class="text-xs font-semibold text-indigo-200 whitespace-nowrap"><i class="fa-solid fa-dollar-sign mr-1"></i>目前時薪 :</span>
+                    <div class="flex items-center">
+                        <span class="text-white text-sm mr-1 font-bold">NT$</span>
+                        <input type="number" x-model.number="hourlyRate" @input="saveData()" class="w-16 bg-indigo-900 border border-indigo-500 rounded px-1.5 py-0.5 text-center text-sm font-bold text-yellow-300 focus:outline-none focus:ring-1 focus:ring-yellow-400" min="0">
+                    </div>
+                </div>
+                <div class="h-6 w-px bg-indigo-600 hidden sm:block"></div>
+                <div class="flex gap-1.5">
+                    <button @click="exportCSV()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-2.5 py-1.5 rounded-lg transition font-medium flex items-center gap-1">
+                        <i class="fa-solid fa-file-export"></i> 匯出 CSV
+                    </button>
+                    <button @click="window.print()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-2.5 py-1.5 rounded-lg transition font-medium flex items-center gap-1">
+                        <i class="fa-solid fa-print"></i> 列印班表
+                    </button>
+                    <button @click="clearAllData()" class="bg-rose-600 hover:bg-rose-500 text-white text-xs px-2.5 py-1.5 rounded-lg transition font-medium flex items-center gap-1" title="清除所有資料">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
         </div>
-      </div>
-      
-      <div class="header-actions">
-        <button class="btn-glass" id="btn-print-roster">
-          <i class="fas fa-print"></i> 列印排班表
-        </button>
-        <button class="btn-glass" id="btn-export-csv">
-          <i class="fas fa-file-csv"></i> 匯出 CSV 檔
-        </button>
-        <button class="btn-glass" id="btn-reset-roster" style="border-color: rgba(255, 80, 80, 0.3); color: var(--weekend-text);">
-          <i class="fas fa-undo"></i> 重設排班
-        </button>
-        <button class="btn-glass" id="theme-toggle">
-          <i class="fas fa-sun"></i> 淺色模式
-        </button>
-      </div>
     </header>
 
-    <!-- Main Dashboard Body -->
-    <div class="roster-dashboard">
-      
-      <!-- LEFT SIDEBAR: Tools and Controls -->
-      <aside class="tools-sidebar glass-panel">
+    <!-- Month Navigation (Pills format) -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 overflow-x-auto whitespace-nowrap flex items-center space-x-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-2 flex items-center gap-1">
+                <i class="fa-regular fa-calendar"></i> 月份:
+            </span>
+            <template x-for="(monthName, index) in monthNames" :key="index">
+                <button 
+                    @click="currentMonth = index" 
+                    :class="currentMonth === index ? 'bg-indigo-100 text-indigo-700 border-indigo-200 shadow-sm font-semibold' : 'text-slate-600 hover:bg-slate-100 border-transparent'"
+                    class="px-4 py-2 text-sm rounded-xl border transition-all duration-200 ease-in-out font-medium focus:outline-none"
+                    x-text="monthName">
+                </button>
+            </template>
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8 flex flex-col gap-6">
         
-        <!-- Roster Mode Toggle -->
-        <div>
-          <div class="section-title">
-            <span>排班編輯模式</span>
-          </div>
-          <div class="mode-toggle-bar">
-            <button class="mode-btn active" id="mode-btn-interactive">點選彈窗</button>
-            <button class="mode-btn" id="mode-btn-paint">滑鼠塗鴉</button>
-          </div>
+        <!-- Dashboard Statistics -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Stat 1: Monthly Income -->
+            <div class="bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-2xl p-4 shadow-md transition-transform hover:scale-[1.02] flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-bold text-emerald-100 uppercase tracking-wider">當月預估薪資</span>
+                    <span class="p-1.5 bg-emerald-400/30 rounded-lg text-emerald-100"><i class="fa-solid fa-wallet"></i></span>
+                </div>
+                <div class="mt-4">
+                    <span class="text-2xl sm:text-3xl font-extrabold" x-text="'NT$ ' + formatNumber(monthlyStats.pay)"></span>
+                    <div class="text-[10px] sm:text-xs text-emerald-100 mt-1 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>以時薪 NT$<span x-text="hourlyRate"></span> 計算</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stat 2: Total Hours -->
+            <div class="bg-gradient-to-br from-indigo-500 to-blue-600 text-white rounded-2xl p-4 shadow-md transition-transform hover:scale-[1.02] flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-bold text-indigo-100 uppercase tracking-wider">總工時累計</span>
+                    <span class="p-1.5 bg-indigo-400/30 rounded-lg text-indigo-100"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                </div>
+                <div class="mt-4">
+                    <span class="text-2xl sm:text-3xl font-extrabold" x-text="monthlyStats.hours + ' 小時'"></span>
+                    <p class="text-[10px] sm:text-xs text-indigo-100 mt-1" x-text="'已扣除未排班/休假天數'"></p>
+                </div>
+            </div>
+
+            <!-- Stat 3: Days Worked -->
+            <div class="bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-2xl p-4 shadow-md transition-transform hover:scale-[1.02] flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-bold text-amber-100 uppercase tracking-wider">出勤工作天數</span>
+                    <span class="p-1.5 bg-amber-400/30 rounded-lg text-amber-100"><i class="fa-solid fa-user-check"></i></span>
+                </div>
+                <div class="mt-4">
+                    <span class="text-2xl sm:text-3xl font-extrabold" x-text="monthlyStats.days + ' 天'"></span>
+                    <p class="text-[10px] sm:text-xs text-amber-100 mt-1" x-text="'本月總共 ' + getDaysInMonth() + ' 天'"></p>
+                </div>
+            </div>
+
+            <!-- Stat 4: Avg Daily Hours -->
+            <div class="bg-gradient-to-br from-slate-700 to-slate-800 text-white rounded-2xl p-4 shadow-md transition-transform hover:scale-[1.02] flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">平均單日工時</span>
+                    <span class="p-1.5 bg-slate-600/30 rounded-lg text-slate-300"><i class="fa-solid fa-calculator"></i></span>
+                </div>
+                <div class="mt-4">
+                    <span class="text-2xl sm:text-3xl font-extrabold" x-text="monthlyStats.avgHours + ' 小時'"></span>
+                    <p class="text-[10px] sm:text-xs text-slate-300 mt-1">僅計算有排班之工作天</p>
+                </div>
+            </div>
         </div>
 
-        <!-- Roster Paintbrush Group (Only active in Paint Mode) -->
-        <div class="paint-controls-section">
-          <div class="section-title">
-            <span>塗鴉筆刷選擇</span>
-          </div>
-          <div class="tool-selector-group" id="emp-selector-group">
-            <!-- Employee paint buttons rendered here -->
-          </div>
-          
-          <div class="tool-selector-group" style="margin-top: 15px;" id="shift-selector-group">
-            <!-- Shift paint buttons rendered here -->
-          </div>
-          
-          <!-- Paint Mode Warning Info -->
-          <div class="paint-banner" id="paint-banner-info" style="display: none;">
-            <i class="fas fa-paint-brush"></i> 塗鴉筆刷已啟用
-          </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- Left Side / Top Panel: Bulk Operations and Info (Span 4) -->
+            <div class="lg:col-span-4 space-y-6 no-print">
+                
+                <!-- Quick Roster Creator (一鍵批次排班) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                    <div class="flex items-center space-x-2 pb-3 mb-4 border-b border-slate-100">
+                        <i class="fa-solid fa-bolt text-amber-500 text-lg"></i>
+                        <h2 class="text-base font-bold text-slate-800">一鍵快速排班工具</h2>
+                    </div>
+                    
+                    <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                        每次逐一選擇下拉選單太累？設定一組常用時段，一鍵快速套用到當月特定日期吧！
+                    </p>
+
+                    <div class="space-y-4">
+                        <!-- Shift select templates -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5">上班時間</label>
+                                <select x-model="bulkStart" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
+                                    <option value="">未安排/休</option>
+                                    <option value="16:30">16:30</option>
+                                    <option value="17:00">17:00</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5">下班時間</label>
+                                <select x-model="bulkEnd" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
+                                    <option value="">未安排/休</option>
+                                    <option value="20:00">20:00</option>
+                                    <option value="20:30">20:30</option>
+                                    <option value="21:30">21:30</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="pt-2 space-y-2">
+                            <button @click="applyBulkSchedule('weekdays')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-calendar-day"></i> 套用至 所有平日 (週一至週五)
+                            </button>
+                            <button @click="applyBulkSchedule('weekends')" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold py-2.5 px-4 rounded-xl transition border border-indigo-200 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-umbrella-beach"></i> 套用至 所有週末 (週六、週日)
+                            </button>
+                            <button @click="applyBulkSchedule('all')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-calendar-days"></i> 套用至 整月每一天
+                            </button>
+                            <button @click="clearCurrentMonth()" class="w-full bg-red-50 hover:bg-red-100 text-rose-600 text-xs font-semibold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2">
+                                <i class="fa-regular fa-calendar-minus"></i> 清空此月排班
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shift Legend & Hints -->
+                <div class="bg-indigo-50 rounded-2xl p-5 border border-indigo-100 space-y-3">
+                    <h3 class="text-sm font-bold text-indigo-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-question"></i> 工時速算參考
+                    </h3>
+                    <ul class="text-xs text-indigo-800 space-y-2 leading-relaxed">
+                        <li class="flex justify-between border-b border-indigo-200/50 pb-1.5">
+                            <span>16:30 至 21:30</span>
+                            <span class="font-bold text-indigo-900">5.0 小時 (薪 $1000)</span>
+                        </li>
+                        <li class="flex justify-between border-b border-indigo-200/50 pb-1.5">
+                            <span>16:30 至 20:30</span>
+                            <span class="font-bold text-indigo-900">4.0 小時 (薪 $800)</span>
+                        </li>
+                        <li class="flex justify-between border-b border-indigo-200/50 pb-1.5">
+                            <span>17:00 至 21:30</span>
+                            <span class="font-bold text-indigo-900">4.5 小時 (薪 $900)</span>
+                        </li>
+                        <li class="flex justify-between pb-1">
+                            <span>17:00 至 20:00</span>
+                            <span class="font-bold text-indigo-900">3.0 小時 (薪 $600)</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- JSON Backup / Restore -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                    <div class="flex items-center space-x-2 pb-3 mb-4 border-b border-slate-100">
+                        <i class="fa-solid fa-database text-slate-500"></i>
+                        <h2 class="text-base font-bold text-slate-800">資料備份與還原</h2>
+                    </div>
+                    <div class="flex gap-2">
+                        <button @click="backupData()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2 px-3 rounded-lg transition text-center">
+                            備份資料檔
+                        </button>
+                        <button @click="triggerRestoreUpload()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2 px-3 rounded-lg transition text-center">
+                            匯入備份檔
+                        </button>
+                        <input type="file" id="restore-file-input" class="hidden" accept=".json" @change="restoreData($event)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Roster Views (Span 8) -->
+            <div class="lg:col-span-8 space-y-6">
+                
+                <!-- View Mode and Month Header Card -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <span class="text-xs font-extrabold text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2.5 py-1 rounded-full">2026 年度計劃</span>
+                            <h2 class="text-xl font-bold text-slate-900 mt-1" x-text="'2026年 ' + monthNames[currentMonth] + ' 排班明細'"></h2>
+                        </div>
+                        
+                        <!-- Tabs for Switching Views (No-print) -->
+                        <div class="flex bg-slate-100 p-1 rounded-xl no-print self-end sm:self-auto">
+                            <button @click="viewMode = 'list'" :class="viewMode === 'list' ? 'bg-white shadow text-indigo-600' : 'text-slate-600 hover:text-slate-900'" class="px-3.5 py-1.5 text-xs font-bold rounded-lg transition duration-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-list-ul"></i> 清單表格
+                            </button>
+                            <button @click="viewMode = 'calendar'" :class="viewMode === 'calendar' ? 'bg-white shadow text-indigo-600' : 'text-slate-600 hover:text-slate-900'" class="px-3.5 py-1.5 text-xs font-bold rounded-lg transition duration-200 flex items-center gap-1.5">
+                                <i class="fa-regular fa-calendar-grid-5"></i> 月曆視圖
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Alert message box if needed -->
+                    <div x-show="toastMessage" x-transition class="mt-4 p-3 bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs rounded-xl flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-indigo-600"></i>
+                        <span x-text="toastMessage"></span>
+                    </div>
+                </div>
+
+                <!-- View 1: List View -->
+                <div x-show="viewMode === 'list'" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wider">
+                                    <th class="py-3.5 px-4 w-28">日期 / 星期</th>
+                                    <th class="py-3.5 px-4 w-40">上班時間</th>
+                                    <th class="py-3.5 px-4 w-40">下班時間</th>
+                                    <th class="py-3.5 px-4 text-center w-24">工時</th>
+                                    <th class="py-3.5 px-4 text-right w-28">預估薪資</th>
+                                    <th class="py-3.5 px-4">備註事項</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-sm">
+                                <template x-for="day in getDaysInSelectedMonth()" :key="day.dateStr">
+                                    <tr :class="day.isWeekend ? 'bg-slate-50/75' : ''" class="hover:bg-slate-50/50 transition duration-150">
+                                        <!-- Date & Weekday -->
+                                        <td class="py-3 px-4 font-medium">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-slate-900 font-bold" x-text="day.dayNum + '日'"></span>
+                                                <span :class="day.weekdayName === '週六' ? 'text-blue-500 font-bold' : day.weekdayName === '週日' ? 'text-rose-500 font-bold' : 'text-slate-400'" 
+                                                      class="text-xs px-1.5 py-0.5 rounded" 
+                                                      x-text="day.weekdayName">
+                                                </span>
+                                            </div>
+                                        </td>
+                                        
+                                        <!-- Start Time Select -->
+                                        <td class="py-2 px-3 no-print">
+                                            <select 
+                                                x-model="getShift(day.dateStr).start" 
+                                                @change="updateDayShift(day.dateStr, $event.target.value, 'start')"
+                                                :class="getShift(day.dateStr).start ? 'bg-emerald-50 text-emerald-800 border-emerald-200 font-semibold' : 'bg-slate-50 text-slate-500 border-slate-200'"
+                                                class="w-full text-xs rounded-xl border px-2 py-2 focus:ring-1 focus:ring-indigo-500 focus:outline-none transition-colors">
+                                                <option value="">休假 / 未排班</option>
+                                                <option value="16:30">16:30 (下半天)</option>
+                                                <option value="17:00">17:00 (傍晚)</option>
+                                            </select>
+                                        </td>
+                                        <!-- Printable value for Start Time -->
+                                        <td class="py-3 px-4 hidden print:table-cell" x-text="getShift(day.dateStr).start || '休'"></td>
+
+                                        <!-- End Time Select -->
+                                        <td class="py-2 px-3 no-print">
+                                            <select 
+                                                x-model="getShift(day.dateStr).end" 
+                                                @change="updateDayShift(day.dateStr, $event.target.value, 'end')"
+                                                :class="getShift(day.dateStr).end ? 'bg-indigo-50 text-indigo-800 border-indigo-200 font-semibold' : 'bg-slate-50 text-slate-500 border-slate-200'"
+                                                class="w-full text-xs rounded-xl border px-2 py-2 focus:ring-1 focus:ring-indigo-500 focus:outline-none transition-colors">
+                                                <option value="">休假 / 未排班</option>
+                                                <option value="20:00">20:00</option>
+                                                <option value="20:30">20:30</option>
+                                                <option value="21:30">21:30 (最晚下班)</option>
+                                            </select>
+                                        </td>
+                                        <!-- Printable value for End Time -->
+                                        <td class="py-3 px-4 hidden print:table-cell" x-text="getShift(day.dateStr).end || '休'"></td>
+
+                                        <!-- Hours Calculated -->
+                                        <td class="py-3 px-4 text-center font-bold">
+                                            <template x-if="calculateHours(getShift(day.dateStr).start, getShift(day.dateStr).end) > 0">
+                                                <span class="text-emerald-600 bg-emerald-50 px-2 py-1 rounded text-xs" x-text="calculateHours(getShift(day.dateStr).start, getShift(day.dateStr).end) + ' 小時'"></span>
+                                            </template>
+                                            <template x-if="calculateHours(getShift(day.dateStr).start, getShift(day.dateStr).end) === 0">
+                                                <span class="text-slate-300 font-normal">-</span>
+                                            </template>
+                                        </td>
+
+                                        <!-- Salary Calculated -->
+                                        <td class="py-3 px-4 text-right font-extrabold text-slate-700">
+                                            <span x-text="calculatePay(getShift(day.dateStr).start, getShift(day.dateStr).end) > 0 ? '$ ' + formatNumber(calculatePay(getShift(day.dateStr).start, getShift(day.dateStr).end)) : '-'"></span>
+                                        </td>
+
+                                        <!-- Notes -->
+                                        <td class="py-2 px-3">
+                                            <input 
+                                                type="text" 
+                                                placeholder="備忘錄... (如: 補休)" 
+                                                x-model="getShift(day.dateStr).note"
+                                                @input="saveData()"
+                                                class="w-full bg-transparent placeholder-slate-300 text-slate-600 border-b border-transparent hover:border-slate-200 focus:border-indigo-500 focus:outline-none py-1 px-1.5 text-xs transition-colors">
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- View 2: Calendar View -->
+                <div x-show="viewMode === 'calendar'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 no-print">
+                    
+                    <!-- Week headers -->
+                    <div class="grid grid-cols-7 gap-1 text-center mb-2">
+                        <div class="text-xs font-bold text-rose-500 py-2">週日</div>
+                        <div class="text-xs font-bold text-slate-500 py-2">週一</div>
+                        <div class="text-xs font-bold text-slate-500 py-2">週二</div>
+                        <div class="text-xs font-bold text-slate-500 py-2">週三</div>
+                        <div class="text-xs font-bold text-slate-500 py-2">週四</div>
+                        <div class="text-xs font-bold text-slate-500 py-2">週五</div>
+                        <div class="text-xs font-bold text-blue-500 py-2">週六</div>
+                    </div>
+
+                    <!-- Calendar Grid Day blocks -->
+                    <div class="grid grid-cols-7 gap-1">
+                        <!-- Empty blocks for previous month alignment -->
+                        <template x-for="emptyDay in getCalendarEmptyStartDays()">
+                            <div class="bg-slate-50/50 min-h-[90px] p-1.5 border border-slate-100/50 rounded-xl text-slate-300 text-xs"></div>
+                        </template>
+
+                        <!-- Days of current month -->
+                        <template x-for="day in getDaysInSelectedMonth()" :key="day.dateStr">
+                            <button 
+                                @click="openQuickEdit(day)"
+                                :class="[
+                                    day.isWeekend ? 'bg-slate-50/75 border-slate-200' : 'bg-white border-slate-200',
+                                    getShift(day.dateStr).start && getShift(day.dateStr).end ? 'ring-2 ring-indigo-500/30 border-indigo-300' : ''
+                                ]"
+                                class="min-h-[90px] p-2 border rounded-xl hover:border-indigo-400 transition-all flex flex-col justify-between items-start text-left focus:outline-none">
+                                
+                                <div class="flex justify-between items-center w-full">
+                                    <span :class="day.isWeekend ? 'text-rose-500 font-bold' : 'text-slate-800 font-semibold'" class="text-xs" x-text="day.dayNum"></span>
+                                    
+                                    <!-- Edit Icon indicator -->
+                                    <span class="text-[9px] text-slate-300 group-hover:text-indigo-400"><i class="fa-solid fa-pen"></i></span>
+                                </div>
+
+                                <!-- Schedule Content Block -->
+                                <div class="w-full mt-1 flex-grow flex flex-col justify-center">
+                                    <template x-if="getShift(day.dateStr).start && getShift(day.dateStr).end">
+                                        <div class="space-y-0.5">
+                                            <span class="block text-[10px] bg-indigo-50 text-indigo-700 font-bold px-1 rounded text-center truncate" 
+                                                  x-text="getShift(day.dateStr).start + ' - ' + getShift(day.dateStr).end"></span>
+                                            <span class="block text-[10px] text-emerald-600 font-extrabold text-right truncate" 
+                                                  x-text="'$' + formatNumber(calculatePay(getShift(day.dateStr).start, getShift(day.dateStr).end))"></span>
+                                        </div>
+                                    </template>
+                                    <template x-if="!getShift(day.dateStr).start || !getShift(day.dateStr).end">
+                                        <div class="text-slate-300 text-[10px] italic text-center py-1">休假</div>
+                                    </template>
+                                </div>
+
+                                <!-- Micro Note indicator -->
+                                <template x-if="getShift(day.dateStr).note">
+                                    <span class="block w-full text-[9px] bg-amber-50 text-amber-700 truncate px-1 rounded border border-amber-100" 
+                                          x-text="getShift(day.dateStr).note"></span>
+                                </template>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+            </div>
         </div>
+    </main>
 
-        <hr style="border: 0; border-top: 1px solid var(--panel-border); margin: 5px 0;">
-
-        <!-- Employee Management -->
-        <div>
-          <div class="section-title">
-            <span>員工清單管理</span>
-          </div>
-          <div id="employee-list-badge-container">
-            <!-- Employee management rows -->
-          </div>
-          
-          <div class="employee-input-wrapper">
-            <input type="text" class="emp-input" id="new-emp-name" placeholder="輸入新員工姓名..." autocomplete="off">
-            <button class="btn-add-emp" id="btn-add-emp" title="新增員工"><i class="fas fa-plus"></i></button>
-          </div>
-        </div>
-
-      </aside>
-
-      <!-- RIGHT AREA: Calendar Grid & Roster Analytics -->
-      <main class="roster-right-area">
+    <!-- Modal: Quick Day Editor for Calendar View -->
+    <div x-show="quickEditOpen" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+         x-cloak>
         
-        <!-- Month Selector Panel -->
-        <div class="month-toggle-panel glass-panel">
-          <div class="current-month-lbl" id="current-month-label">
-            2026 年 5 月份排班表
-          </div>
-          <div class="month-switch-buttons">
-            <button class="btn-month active" id="btn-month-may">5月 (五月)</button>
-            <button class="btn-month" id="btn-month-june">6月 (六月)</button>
-          </div>
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full overflow-hidden" @click.away="quickEditOpen = false">
+            
+            <!-- Modal Header -->
+            <div class="bg-indigo-700 text-white px-5 py-4 flex justify-between items-center">
+                <div>
+                    <h3 class="text-base font-bold" x-text="'快速編輯: 2026 / ' + (currentMonth+1) + ' / ' + (editingDay ? editingDay.dayNum : '') + ' 日'"></h3>
+                    <p class="text-[11px] text-indigo-200" x-text="editingDay ? editingDay.weekdayName : ''"></p>
+                </div>
+                <button @click="quickEditOpen = false" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="p-5 space-y-4">
+                <!-- Start selection -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">上班時間</label>
+                    <select x-model="modalStart" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="">休假 / 未安排</option>
+                        <option value="16:30">16:30</option>
+                        <option value="17:00">17:00</option>
+                    </select>
+                </div>
+
+                <!-- End selection -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">下班時間</label>
+                    <select x-model="modalEnd" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="">休假 / 未安排</option>
+                        <option value="20:00">20:00</option>
+                        <option value="20:30">20:30</option>
+                        <option value="21:30">21:30</option>
+                    </select>
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">工作備註</label>
+                    <input type="text" x-model="modalNote" placeholder="例如: 專案活動、代班..." class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+
+                <!-- Live stats within modal -->
+                <div class="bg-slate-50 rounded-xl p-3 border border-slate-100 flex justify-between text-xs text-slate-600">
+                    <div>
+                        計算工時: <span class="font-bold text-indigo-600" x-text="calculateHours(modalStart, modalEnd) + ' 小時'"></span>
+                    </div>
+                    <div>
+                        當日薪資: <span class="font-bold text-emerald-600" x-text="'$' + formatNumber(calculatePay(modalStart, modalEnd))"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex gap-2">
+                <button @click="quickEditOpen = false" class="flex-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-bold py-2.5 rounded-xl transition">
+                    取消
+                </button>
+                <button @click="saveQuickEdit()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-md shadow-indigo-600/10">
+                    儲存班表
+                </button>
+            </div>
         </div>
-
-        <!-- Calendar Container -->
-        <div class="calendar-view-container glass-panel">
-          
-          <!-- Weekday Headers -->
-          <div class="calendar-weekdays-grid">
-            <div>週日</div>
-            <div>週一</div>
-            <div>週二</div>
-            <div>週三</div>
-            <div>週四</div>
-            <div>週五</div>
-            <div>週六</div>
-          </div>
-
-          <!-- Calendar Days Grid -->
-          <div class="calendar-days-grid" id="calendar-days">
-            <!-- Generated date cells -->
-          </div>
-
-        </div>
-
-        <!-- Roster Analytics Statistics -->
-        <section class="stats-panel glass-panel">
-          <div class="section-title" style="margin-bottom: 20px;">
-            <span><i class="fas fa-chart-pie"></i> 雙月排班工時與班數統計 (5/1 - 6/30)</span>
-            <span style="font-size:12px; font-weight:normal; text-transform:none;">即時計算工時及勞基法工時預警</span>
-          </div>
-          <div class="stats-grid" id="employee-stats-container">
-            <!-- Employee stats card components -->
-          </div>
-        </section>
-
-      </main>
-
     </div>
 
-  </div>
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-500 no-print">
+        <div class="max-w-7xl mx-auto px-4">
+            <p class="font-medium text-slate-600 mb-1">2026年 個人工作排班計算表系統</p>
+            <p class="text-slate-400">時薪 NT$ 200 元基準設定，您的排班資料會完全儲存於您的瀏覽器本機快取中，不會上傳。 </p>
+        </div>
+    </footer>
 
-  <!-- Edit Shift Modal Window (For popup interactive mode) -->
-  <div class="modal-overlay" id="edit-shift-modal">
-    <div class="modal-card glass-panel">
-      <div class="modal-header">
-        <h3 class="modal-title" id="modal-date-title">排班調整</h3>
-        <button class="btn-close-modal" id="btn-modal-close">&times;</button>
-      </div>
-      
-      <div class="modal-body" id="modal-shift-edit-body">
-        <!-- Dyn generated employee dropdown menus -->
-      </div>
-      
-      <div class="modal-footer">
-        <button class="btn-glass" id="btn-modal-cancel" style="margin:0;">取消</button>
-        <button class="btn-glass btn-primary" id="btn-modal-save" style="margin:0;">儲存排班</button>
-      </div>
-    </div>
-  </div>
+    <script>
+        function schedulerApp() {
+            return {
+                // Application State
+                currentMonth: new Date().getMonth(), // Default to current system month
+                hourlyRate: 200,
+                viewMode: 'list', // 'list' or 'calendar'
+                scheduleData: {}, // Key: YYYY-MM-DD, Value: { start: '', end: '', note: '' }
+                toastMessage: '',
+                
+                // Bulk action values
+                bulkStart: '',
+                bulkEnd: '',
 
-  <!-- Scripts -->
-  <script src="roster.js"></script>
+                // Quick Modal states
+                quickEditOpen: false,
+                editingDay: null,
+                modalStart: '',
+                modalEnd: '',
+                modalNote: '',
+
+                monthNames: [
+                    '1月 January', '2月 February', '3月 March', '4月 April', 
+                    '5月 May', '6月 June', '7月 July', '8月 August', 
+                    '9月 September', '10月 October', '11月 November', '12月 December'
+                ],
+
+                weekdayNames: ['週日', '週一', '週二', '週三', '週四', '週五', '週六'],
+
+                init() {
+                    // Load saved scheduleData
+                    const savedData = localStorage.getItem('personal_roster_2026');
+                    if (savedData) {
+                        try {
+                            this.scheduleData = JSON.parse(savedData);
+                        } catch(e) {
+                            console.error('Error parsing saved schedule data, resetting...', e);
+                            this.scheduleData = {};
+                        }
+                    }
+
+                    // Load saved hourlyRate
+                    const savedRate = localStorage.getItem('personal_hourly_rate_2026');
+                    if (savedRate) {
+                        this.hourlyRate = parseInt(savedRate, 10) || 200;
+                    }
+
+                    // If user is operating in 2026, keep their month. If they are in another year, start on Jan 2026
+                    const today = new Date();
+                    if (today.getFullYear() === 2026) {
+                        this.currentMonth = today.getMonth();
+                    } else {
+                        this.currentMonth = 0; // January
+                    }
+                },
+
+                // Save application state to local storage
+                saveData() {
+                    localStorage.setItem('personal_roster_2026', JSON.stringify(this.scheduleData));
+                    localStorage.setItem('personal_hourly_rate_2026', this.hourlyRate.toString());
+                },
+
+                // Helper to fetch shift info safely
+                getShift(dateStr) {
+                    if (!this.scheduleData[dateStr]) {
+                        // Dynamically initialize empty object to maintain reactivity
+                        this.scheduleData[dateStr] = { start: '', end: '', note: '' };
+                    }
+                    return this.scheduleData[dateStr];
+                },
+
+                // Explicit update of shifts
+                updateDayShift(dateStr, value, type) {
+                    const shift = this.getShift(dateStr);
+                    shift[type] = value;
+                    this.saveData();
+                },
+
+                // Days in Month for non-leap 2026
+                getDaysInMonth() {
+                    // Month is 0-indexed. 2026 has standard Feb (28 days).
+                    return new Date(2026, this.currentMonth + 1, 0).getDate();
+                },
+
+                // Generates dates array for current month
+                getDaysInSelectedMonth() {
+                    const days = [];
+                    const totalDays = this.getDaysInMonth();
+                    for (let d = 1; d <= totalDays; d++) {
+                        const date = new Date(2026, this.currentMonth, d);
+                        const weekday = date.getDay(); // 0 (Sunday) to 6 (Saturday)
+                        const mm = String(this.currentMonth + 1).padStart(2, '0');
+                        const dd = String(d).padStart(2, '0');
+                        const dateStr = `2026-${mm}-${dd}`;
+
+                        days.push({
+                            dayNum: d,
+                            weekdayName: this.weekdayNames[weekday],
+                            isWeekend: weekday === 0 || weekday === 6,
+                            dateStr: dateStr
+                        });
+                    }
+                    return days;
+                },
+
+                // Alignment padding count for Calendar view grid
+                getCalendarEmptyStartDays() {
+                    // Gets index of the first weekday of current month (e.g. 0 for Sun, 3 for Wed)
+                    const firstDay = new Date(2026, this.currentMonth, 1).getDay();
+                    return Array.from({ length: firstDay });
+                },
+
+                // Calculate worked hours based on start/end dropdowns
+                calculateHours(start, end) {
+                    if (!start || !end) return 0;
+                    
+                    const [startHour, startMin] = start.split(':').map(Number);
+                    const [endHour, endMin] = end.split(':').map(Number);
+
+                    const startValue = startHour + (startMin / 60);
+                    const endValue = endHour + (endMin / 60);
+
+                    // Ensure validity (end after start)
+                    if (endValue <= startValue) return 0;
+
+                    return endValue - startValue;
+                },
+
+                // Pay calculator per day
+                calculatePay(start, end) {
+                    const hours = this.calculateHours(start, end);
+                    return hours * this.hourlyRate;
+                },
+
+                // Computes statistical summary card numbers dynamically
+                get monthlyStats() {
+                    let totalHours = 0;
+                    let totalPay = 0;
+                    let workDays = 0;
+
+                    const days = this.getDaysInSelectedMonth();
+                    days.forEach(day => {
+                        const shift = this.getShift(day.dateStr);
+                        if (shift.start && shift.end) {
+                            const h = this.calculateHours(shift.start, shift.end);
+                            if (h > 0) {
+                                totalHours += h;
+                                totalPay += (h * this.hourlyRate);
+                                workDays++;
+                            }
+                        }
+                    });
+
+                    const avg = workDays > 0 ? (totalHours / workDays).toFixed(1) : '0';
+
+                    return {
+                        hours: totalHours,
+                        pay: totalPay,
+                        days: workDays,
+                        avgHours: avg
+                    };
+                },
+
+                // Formatting number to local currency look
+                formatNumber(val) {
+                    return Number(val).toLocaleString('zh-TW', { minimumFractionDigits: 0, maximumFractionDigits: 1 });
+                },
+
+                // Apply a single template shift to weekdays, weekends, or all
+                applyBulkSchedule(targetGroup) {
+                    const days = this.getDaysInSelectedMonth();
+                    let count = 0;
+
+                    days.forEach(day => {
+                        const date = new Date(2026, this.currentMonth, day.dayNum);
+                        const weekday = date.getDay(); // 0 is Sun, 6 is Sat
+                        const isWeekend = (weekday === 0 || weekday === 6);
+
+                        let shouldApply = false;
+                        if (targetGroup === 'all') {
+                            shouldApply = true;
+                        } else if (targetGroup === 'weekdays' && !isWeekend) {
+                            shouldApply = true;
+                        } else if (targetGroup === 'weekends' && isWeekend) {
+                            shouldApply = true;
+                        }
+
+                        if (shouldApply) {
+                            const shift = this.getShift(day.dateStr);
+                            shift.start = this.bulkStart;
+                            shift.end = this.bulkEnd;
+                            count++;
+                        }
+                    });
+
+                    this.saveData();
+                    this.showToast(`已成功套用工時段至當月 ${count} 個日期！`);
+                },
+
+                // Clear current selected month's data
+                clearCurrentMonth() {
+                    if (confirm(`確定要清空 2026年 ${this.monthNames[this.currentMonth]} 的所有排班資料嗎？`)) {
+                        const days = this.getDaysInSelectedMonth();
+                        days.forEach(day => {
+                            if (this.scheduleData[day.dateStr]) {
+                                delete this.scheduleData[day.dateStr];
+                            }
+                        });
+                        this.saveData();
+                        this.showToast('當月排班已清空！');
+                    }
+                },
+
+                // Clear entire localStorage
+                clearAllData() {
+                    if (confirm('警告！確定要清空「整年度 2026年」的所有工作排班表資料嗎？這個動作將無法復原。')) {
+                        this.scheduleData = {};
+                        this.hourlyRate = 200;
+                        this.saveData();
+                        this.showToast('全年度排班表已完全清除重設！');
+                    }
+                },
+
+                // Modal dialog triggers
+                openQuickEdit(day) {
+                    this.editingDay = day;
+                    const shift = this.getShift(day.dateStr);
+                    this.modalStart = shift.start;
+                    this.modalEnd = shift.end;
+                    this.modalNote = shift.note || '';
+                    this.quickEditOpen = true;
+                },
+
+                saveQuickEdit() {
+                    if (this.editingDay) {
+                        const shift = this.getShift(this.editingDay.dateStr);
+                        shift.start = this.modalStart;
+                        shift.end = this.modalEnd;
+                        shift.note = this.modalNote;
+                        this.saveData();
+                        this.quickEditOpen = false;
+                        this.showToast(`已更新 ${this.editingDay.dayNum} 日之排班資訊。`);
+                    }
+                },
+
+                showToast(msg) {
+                    this.toastMessage = msg;
+                    setTimeout(() => {
+                        this.toastMessage = '';
+                    }, 4000);
+                },
+
+                // Exports current active month data to standard downloadable CSV
+                exportCSV() {
+                    const days = this.getDaysInSelectedMonth();
+                    
+                    // UTF-8 BOM to prevent excel parsing issue for Chinese
+                    let csvContent = "\uFEFF";
+                    csvContent += "日期,星期,上班時間,下班時間,工時(小時),薪資(元),備忘事項\n";
+
+                    days.forEach(day => {
+                        const shift = this.getShift(day.dateStr);
+                        const hours = this.calculateHours(shift.start, shift.end);
+                        const pay = hours * this.hourlyRate;
+                        
+                        csvContent += `${day.dateStr},${day.weekdayName},${shift.start || '休'},${shift.end || '休'},${hours},${pay},"${shift.note || ''}"\n`;
+                    });
+
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement("a");
+                    const url = URL.createObjectURL(blob);
+                    
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", `2026年-${this.currentMonth + 1}月-個人排班薪資表.csv`);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                },
+
+                // Backup JSON
+                backupData() {
+                    const dataStr = JSON.stringify({
+                        scheduleData: this.scheduleData,
+                        hourlyRate: this.hourlyRate
+                    });
+                    const blob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", `2026_排班表備份檔_${new Date().toISOString().slice(0,10)}.json`);
+                    link.click();
+                },
+
+                triggerRestoreUpload() {
+                    document.getElementById('restore-file-input').click();
+                },
+
+                restoreData(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const parsed = JSON.parse(e.target.result);
+                            if (parsed.scheduleData) {
+                                this.scheduleData = parsed.scheduleData;
+                                if (parsed.hourlyRate) this.hourlyRate = parsed.hourlyRate;
+                                this.saveData();
+                                this.showToast('排班備份檔案匯入成功！');
+                            } else {
+                                throw new Error('檔案格式不合');
+                            }
+                        } catch(err) {
+                            alert('匯入失敗：請確認選擇的是由本系統備份的 .json 格式檔案。');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            }
+        }
+    </script>
 </body>
 </html>
