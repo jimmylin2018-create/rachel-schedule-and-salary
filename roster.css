@@ -1,0 +1,936 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+
+/* Color Variables & Themes */
+:root {
+  /* Dark Mode Defaults */
+  --bg-grad-start: hsl(222, 47%, 11%);
+  --bg-grad-end: hsl(244, 49%, 6%);
+  
+  --panel-bg: hsla(223, 47%, 16%, 0.45);
+  --panel-border: hsla(220, 30%, 30%, 0.25);
+  --panel-shadow: rgba(0, 0, 0, 0.4);
+  
+  --primary-color: hsl(263, 90%, 68%);
+  --primary-glow: hsla(263, 90%, 68%, 0.35);
+  --secondary-color: hsl(190, 95%, 48%);
+  --secondary-glow: hsla(190, 95%, 48%, 0.35);
+  --accent-color: hsl(323, 90%, 60%);
+  
+  --text-main: hsl(210, 20%, 98%);
+  --text-muted: hsl(217, 18%, 76%);
+  
+  /* Shift Colors */
+  --shift-morning-bg: hsla(200, 90%, 60%, 0.15);
+  --shift-morning-border: hsla(200, 90%, 60%, 0.4);
+  --shift-morning-text: hsl(200, 95%, 70%);
+  
+  --shift-evening-bg: hsla(35, 90%, 60%, 0.15);
+  --shift-evening-border: hsla(35, 90%, 60%, 0.4);
+  --shift-evening-text: hsl(35, 95%, 70%);
+  
+  --shift-night-bg: hsla(280, 90%, 65%, 0.15);
+  --shift-night-border: hsla(280, 90%, 65%, 0.4);
+  --shift-night-text: hsl(280, 95%, 75%);
+  
+  --shift-off-bg: hsla(145, 40%, 40%, 0.12);
+  --shift-off-border: hsla(145, 40%, 40%, 0.3);
+  --shift-off-text: hsl(145, 40%, 70%);
+
+  --weekend-bg: hsla(355, 60%, 50%, 0.05);
+  --weekend-text: hsl(355, 95%, 75%);
+  
+  --glass-blur: blur(16px);
+  --transition-speed: 0.3s;
+}
+
+[data-theme="light"] {
+  --bg-grad-start: hsl(215, 60%, 95%);
+  --bg-grad-end: hsl(225, 40%, 88%);
+  
+  --panel-bg: rgba(255, 255, 255, 0.55);
+  --panel-border: rgba(255, 255, 255, 0.7);
+  --panel-shadow: rgba(31, 38, 135, 0.08);
+  
+  --primary-color: hsl(263, 75%, 55%);
+  --primary-glow: hsla(263, 75%, 55%, 0.2);
+  --secondary-color: hsl(190, 85%, 40%);
+  --secondary-glow: hsla(190, 85%, 40%, 0.2);
+  
+  --text-main: hsl(222, 47%, 15%);
+  --text-muted: hsl(220, 15%, 42%);
+  
+  /* Shift Colors - Light Mode */
+  --shift-morning-bg: hsla(200, 85%, 45%, 0.1);
+  --shift-morning-border: hsla(200, 85%, 45%, 0.3);
+  --shift-morning-text: hsl(200, 90%, 35%);
+  
+  --shift-evening-bg: hsla(30, 85%, 45%, 0.1);
+  --shift-evening-border: hsla(30, 85%, 45%, 0.3);
+  --shift-evening-text: hsl(25, 90%, 35%);
+  
+  --shift-night-bg: hsla(280, 80%, 50%, 0.1);
+  --shift-night-border: hsla(280, 80%, 50%, 0.3);
+  --shift-night-text: hsl(280, 85%, 40%);
+  
+  --shift-off-bg: hsla(145, 50%, 30%, 0.08);
+  --shift-off-border: hsla(145, 50%, 35%, 0.25);
+  --shift-off-text: hsl(145, 60%, 30%);
+
+  --weekend-bg: hsla(355, 75%, 50%, 0.04);
+  --weekend-text: hsl(355, 80%, 45%);
+}
+
+/* Reset and Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Outfit', 'Noto Sans TC', sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--bg-grad-start) 0%, var(--bg-grad-end) 100%);
+  color: var(--text-main);
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: background var(--transition-speed) ease;
+}
+
+/* Background Bubbles */
+.bg-bubble {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(100px);
+  z-index: -1;
+  opacity: 0.12;
+  pointer-events: none;
+}
+.bg-bubble-1 {
+  width: 500px;
+  height: 500px;
+  background: var(--primary-color);
+  top: -150px;
+  left: 10%;
+  animation: float-slow 22s infinite alternate;
+}
+.bg-bubble-2 {
+  width: 600px;
+  height: 600px;
+  background: var(--secondary-color);
+  bottom: -200px;
+  right: 10%;
+  animation: float-slow 28s infinite alternate-reverse;
+}
+
+@keyframes float-slow {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(60px) scale(1.1); }
+}
+
+/* Layout Framework */
+.app-container {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  min-height: 100vh;
+}
+
+/* Header Roster Styling */
+.roster-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logo-badge {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  box-shadow: 0 0 20px var(--primary-glow);
+}
+
+.logo-details h1 {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+.logo-details p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Custom Buttons */
+.btn-glass {
+  background: hsla(220, 20%, 20%, 0.4);
+  border: 1px solid var(--panel-border);
+  color: var(--text-main);
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  transition: all 0.2s ease;
+}
+[data-theme="light"] .btn-glass {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.btn-glass:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-color), hsl(290, 80%, 60%));
+  border: none;
+  color: white;
+  box-shadow: 0 4px 15px var(--primary-glow);
+}
+.btn-primary:hover {
+  box-shadow: 0 6px 20px var(--primary-glow);
+}
+
+/* Main Dashboard Grid */
+.roster-dashboard {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 25px;
+  align-items: start;
+}
+
+/* Glass panel */
+.glass-panel {
+  background: var(--panel-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--panel-border);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px 0 var(--panel-shadow);
+  transition: all var(--transition-speed) ease;
+}
+
+/* LEFT SIDEBAR: Tools Panel */
+.tools-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 25px;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Selector buttons list */
+.tool-selector-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.selector-item {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+[data-theme="light"] .selector-item {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.selector-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--primary-color);
+  transform: translateX(4px);
+}
+[data-theme="light"] .selector-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.selector-item.active {
+  background: linear-gradient(135deg, var(--primary-color), hsl(290, 80%, 60%)) !important;
+  color: white !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+/* Paint Brush Indicators */
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.dot-morning { background-color: var(--shift-morning-text); }
+.dot-evening { background-color: var(--shift-evening-text); }
+.dot-night { background-color: var(--shift-night-text); }
+.dot-off { background-color: var(--shift-off-text); }
+
+/* Paint Mode Indicator Banner */
+.paint-banner {
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: hsla(190, 95%, 48%, 0.1);
+  border: 1px solid var(--secondary-glow);
+  color: var(--secondary-color);
+  margin-top: 5px;
+}
+
+/* Mode toggles */
+.mode-toggle-bar {
+  display: flex;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mode-btn.active {
+  background: var(--text-muted);
+  color: var(--bg-grad-start);
+}
+[data-theme="light"] .mode-btn.active {
+  background: var(--text-main);
+  color: white;
+}
+
+/* Employee Form Controls */
+.employee-input-wrapper {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.emp-input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+  outline: none;
+  font-size: 13px;
+}
+.emp-input:focus {
+  border-color: var(--primary-color);
+}
+
+.btn-add-emp {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: var(--primary-color);
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.employee-row-badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.btn-delete-emp {
+  background: transparent;
+  border: none;
+  color: var(--weekend-text);
+  cursor: pointer;
+  font-size: 12px;
+}
+.btn-delete-emp:hover {
+  color: red;
+}
+
+/* RIGHT SECTION: Calendar & Stats Layout */
+.roster-right-area {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* Month Toggle Bar */
+.month-toggle-panel {
+  padding: 15px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.current-month-lbl {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.month-switch-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-month {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+  color: var(--text-main);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.btn-month.active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 4px 10px var(--primary-glow);
+}
+
+/* ==================== CALENDAR GRID ==================== */
+.calendar-view-container {
+  padding: 20px;
+}
+
+.calendar-weekdays-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 15px;
+}
+
+.calendar-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+/* Calendar Date Cell */
+.calendar-cell {
+  min-height: 120px;
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+[data-theme="light"] .calendar-cell {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.calendar-cell:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-color);
+  box-shadow: 0 5px 15px var(--panel-shadow);
+}
+
+/* Inactive dates (padding days of calendar) */
+.calendar-cell.inactive-date {
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.cell-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.date-number {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Weekend highlighting */
+.calendar-cell.weekend-date {
+  background: var(--weekend-bg);
+}
+.calendar-cell.weekend-date .date-number {
+  color: var(--weekend-text);
+}
+
+/* Roster Shift Slots in Cell */
+.cell-shift-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-grow: 1;
+}
+
+.shift-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid transparent;
+}
+
+.badge-morning {
+  background-color: var(--shift-morning-bg);
+  border-color: var(--shift-morning-border);
+  color: var(--shift-morning-text);
+}
+.badge-evening {
+  background-color: var(--shift-evening-bg);
+  border-color: var(--shift-evening-border);
+  color: var(--shift-evening-text);
+}
+.badge-night {
+  background-color: var(--shift-night-bg);
+  border-color: var(--shift-night-border);
+  color: var(--shift-night-text);
+}
+.badge-off {
+  background-color: var(--shift-off-bg);
+  border-color: var(--shift-off-border);
+  color: var(--shift-off-text);
+}
+
+.shift-badge .shift-emp-name {
+  font-weight: 600;
+}
+.shift-badge .shift-lbl {
+  opacity: 0.7;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+/* Warning indicator on cell */
+.cell-warning-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: var(--weekend-text);
+  font-size: 12px;
+}
+
+/* Paint Brush active state on cursor */
+body.paint-mode-active .calendar-cell {
+  cursor: cell;
+}
+
+
+/* ==================== STATISTICS PANEL ==================== */
+.stats-panel {
+  padding: 25px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.stats-card {
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+[data-theme="light"] .stats-card {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.stats-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 8px;
+}
+
+.stats-emp-title {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.stats-hours-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  font-weight: 700;
+}
+[data-theme="light"] .stats-hours-badge {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.stats-details-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  text-align: center;
+}
+
+.stats-subbox {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.15);
+}
+[data-theme="light"] .stats-subbox {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.stats-subbox .count-lbl {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+.stats-subbox .count-val {
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.stats-warning-badge {
+  font-size: 11px;
+  color: var(--weekend-text);
+  background: rgba(255, 80, 80, 0.08);
+  border: 1px solid rgba(255, 80, 80, 0.2);
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+/* ==================== EDIT MODAL ==================== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-card {
+  width: 90%;
+  max-width: 480px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 12px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.btn-close-modal {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.shift-edit-grid {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+.shift-edit-label {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.shift-edit-select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  background: var(--bg-grad-start);
+  color: var(--text-main);
+  outline: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+
+/* ==================== PRINT MEDIA STYLES ==================== */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .bg-bubble,
+  .tools-sidebar,
+  .header-actions,
+  .month-switch-buttons,
+  .paint-banner,
+  .employee-input-wrapper,
+  .btn-glass,
+  .btn-primary,
+  .logo-badge {
+    display: none !important; /* Hide interactive controls when printing */
+  }
+  
+  .app-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+  
+  .roster-dashboard {
+    grid-template-columns: 1fr !important; /* Force single column */
+  }
+  
+  .glass-panel {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+  
+  .month-toggle-panel {
+    padding: 10px 0 !important;
+    border-bottom: 2px solid black !important;
+  }
+  
+  .current-month-lbl {
+    font-size: 24px !important;
+    color: black !important;
+    font-weight: 800 !important;
+  }
+
+  .calendar-view-container {
+    padding: 15px 0 !important;
+  }
+  
+  .calendar-weekdays-grid {
+    gap: 2px !important;
+    color: black !important;
+  }
+  
+  .calendar-days-grid {
+    gap: 2px !important;
+  }
+  
+  .calendar-cell {
+    min-height: 140px !important;
+    border: 1px solid black !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+  
+  .calendar-cell.weekend-date {
+    background: #f8f8f8 !important; /* Light gray for print weekend */
+  }
+  .calendar-cell.weekend-date .date-number {
+    color: black !important;
+  }
+  
+  .shift-badge {
+    border: 1px solid #ccc !important;
+    border-radius: 2px !important;
+    padding: 2px 4px !important;
+    font-size: 10px !important;
+    color: black !important;
+  }
+  
+  .badge-morning { background: #e0f2fe !important; }
+  .badge-evening { background: #ffedd5 !important; }
+  .badge-night { background: #f3e8ff !important; }
+  .badge-off { background: #f3f4f6 !important; }
+
+  .stats-panel {
+    page-break-before: always; /* Print stats on second page */
+    padding: 20px 0 !important;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 15px !important;
+  }
+  
+  .stats-card {
+    border: 1px solid black !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: black !important;
+  }
+  
+  .stats-subbox {
+    background: #f0f0f0 !important;
+  }
+  .stats-subbox .count-lbl {
+    color: #444 !important;
+  }
+}
+
+/* ==================== RESPONSIVE LAYOUTS ==================== */
+@media (max-width: 1100px) {
+  .roster-dashboard {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    padding: 15px;
+  }
+  
+  .roster-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .calendar-cell {
+    min-height: 90px;
+  }
+  
+  .shift-badge {
+    font-size: 9px;
+    padding: 2px;
+  }
+  .shift-badge .shift-lbl {
+    display: none; /* Hide label shift name, keep employee name on mobile */
+  }
+}
+
+@media (max-width: 550px) {
+  .calendar-days-grid, .calendar-weekdays-grid {
+    gap: 4px;
+  }
+  
+  .calendar-cell {
+    min-height: 80px;
+    padding: 4px;
+  }
+  
+  .date-number {
+    font-size: 13px;
+  }
+}
