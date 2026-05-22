@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 年 5 月與 6 月工作排班表系統 - Shift Roster Builder</title>
+  
+  <!-- FontAwesome Icon Set -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- CSS Link -->
+  <link rel="stylesheet" href="roster.css">
+</head>
+<body>
+
+  <!-- Background Frosted Glowing Circles for Glassmorphism Effect -->
+  <div class="bg-bubble bg-bubble-1"></div>
+  <div class="bg-bubble bg-bubble-2"></div>
+
+  <div class="app-container">
+    
+    <!-- Header Section -->
+    <header class="roster-header glass-panel">
+      <div class="logo-section">
+        <div class="logo-badge"><i class="fas fa-calendar-alt"></i></div>
+        <div class="logo-details">
+          <h1>2026年 5月/6月工作排班表</h1>
+          <p>智能排班系統 &middot; 直覺塗鴉工具 &middot; 勞基法工時統計</p>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn-glass" id="btn-print-roster">
+          <i class="fas fa-print"></i> 列印排班表
+        </button>
+        <button class="btn-glass" id="btn-export-csv">
+          <i class="fas fa-file-csv"></i> 匯出 CSV 檔
+        </button>
+        <button class="btn-glass" id="btn-reset-roster" style="border-color: rgba(255, 80, 80, 0.3); color: var(--weekend-text);">
+          <i class="fas fa-undo"></i> 重設排班
+        </button>
+        <button class="btn-glass" id="theme-toggle">
+          <i class="fas fa-sun"></i> 淺色模式
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Dashboard Body -->
+    <div class="roster-dashboard">
+      
+      <!-- LEFT SIDEBAR: Tools and Controls -->
+      <aside class="tools-sidebar glass-panel">
+        
+        <!-- Roster Mode Toggle -->
+        <div>
+          <div class="section-title">
+            <span>排班編輯模式</span>
+          </div>
+          <div class="mode-toggle-bar">
+            <button class="mode-btn active" id="mode-btn-interactive">點選彈窗</button>
+            <button class="mode-btn" id="mode-btn-paint">滑鼠塗鴉</button>
+          </div>
+        </div>
+
+        <!-- Roster Paintbrush Group (Only active in Paint Mode) -->
+        <div class="paint-controls-section">
+          <div class="section-title">
+            <span>塗鴉筆刷選擇</span>
+          </div>
+          <div class="tool-selector-group" id="emp-selector-group">
+            <!-- Employee paint buttons rendered here -->
+          </div>
+          
+          <div class="tool-selector-group" style="margin-top: 15px;" id="shift-selector-group">
+            <!-- Shift paint buttons rendered here -->
+          </div>
+          
+          <!-- Paint Mode Warning Info -->
+          <div class="paint-banner" id="paint-banner-info" style="display: none;">
+            <i class="fas fa-paint-brush"></i> 塗鴉筆刷已啟用
+          </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--panel-border); margin: 5px 0;">
+
+        <!-- Employee Management -->
+        <div>
+          <div class="section-title">
+            <span>員工清單管理</span>
+          </div>
+          <div id="employee-list-badge-container">
+            <!-- Employee management rows -->
+          </div>
+          
+          <div class="employee-input-wrapper">
+            <input type="text" class="emp-input" id="new-emp-name" placeholder="輸入新員工姓名..." autocomplete="off">
+            <button class="btn-add-emp" id="btn-add-emp" title="新增員工"><i class="fas fa-plus"></i></button>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- RIGHT AREA: Calendar Grid & Roster Analytics -->
+      <main class="roster-right-area">
+        
+        <!-- Month Selector Panel -->
+        <div class="month-toggle-panel glass-panel">
+          <div class="current-month-lbl" id="current-month-label">
+            2026 年 5 月份排班表
+          </div>
+          <div class="month-switch-buttons">
+            <button class="btn-month active" id="btn-month-may">5月 (五月)</button>
+            <button class="btn-month" id="btn-month-june">6月 (六月)</button>
+          </div>
+        </div>
+
+        <!-- Calendar Container -->
+        <div class="calendar-view-container glass-panel">
+          
+          <!-- Weekday Headers -->
+          <div class="calendar-weekdays-grid">
+            <div>週日</div>
+            <div>週一</div>
+            <div>週二</div>
+            <div>週三</div>
+            <div>週四</div>
+            <div>週五</div>
+            <div>週六</div>
+          </div>
+
+          <!-- Calendar Days Grid -->
+          <div class="calendar-days-grid" id="calendar-days">
+            <!-- Generated date cells -->
+          </div>
+
+        </div>
+
+        <!-- Roster Analytics Statistics -->
+        <section class="stats-panel glass-panel">
+          <div class="section-title" style="margin-bottom: 20px;">
+            <span><i class="fas fa-chart-pie"></i> 雙月排班工時與班數統計 (5/1 - 6/30)</span>
+            <span style="font-size:12px; font-weight:normal; text-transform:none;">即時計算工時及勞基法工時預警</span>
+          </div>
+          <div class="stats-grid" id="employee-stats-container">
+            <!-- Employee stats card components -->
+          </div>
+        </section>
+
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- Edit Shift Modal Window (For popup interactive mode) -->
+  <div class="modal-overlay" id="edit-shift-modal">
+    <div class="modal-card glass-panel">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-date-title">排班調整</h3>
+        <button class="btn-close-modal" id="btn-modal-close">&times;</button>
+      </div>
+      
+      <div class="modal-body" id="modal-shift-edit-body">
+        <!-- Dyn generated employee dropdown menus -->
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-glass" id="btn-modal-cancel" style="margin:0;">取消</button>
+        <button class="btn-glass btn-primary" id="btn-modal-save" style="margin:0;">儲存排班</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="roster.js"></script>
+</body>
+</html>
